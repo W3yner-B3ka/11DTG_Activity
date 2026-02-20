@@ -1,9 +1,7 @@
 # This is a shopping cart program where users can add towards their "shopping cart"
 # This program will allow users to add, delete, and update their shopping cart.
 # The program will display the shopping list and to check if the person wants to buy the shopping cart or not.
-# version 2.0 (added addItems and checking logic before proceeding)
-
-# TODO Complete update item and delete item funcions in the cart. Also add a checkout function.
+# version 3.0 (added checkout, update items, and delete items. Also added user options to make flow easier)
 
 
 # Imports
@@ -74,12 +72,20 @@ def displayItems():
                 print("Invalid number, putting 1 as default")
                 quantity = 1
             # add the item towards the dictionary
+            time.sleep(1.5)
+            clearText()
             addItem(matched_item, quantity)
             # else redirect them back to main menu.
         else:
             time.sleep(1.5)
             clearText()
             helpPause()
+    # Redirect them back to the main menu if they type something not in stock
+    else:
+        print("The item you are looking for is not in our store.")
+        time.sleep(1.5)
+        clearText()
+        displayItems()
 
 
 # This function will display the users shopping cart
@@ -129,36 +135,101 @@ def addItem(item, quantity=1):
     # ask the user if they would like to continue shopping, update or delete the item.
     print("What would you like to do next?")
     # Ask the user what they would like to do
-    user_actions = int(
-        input(
-            "Press 1 to continue shopping,\n press 2 to update items,\n press 3 to delete items. \n press 4 to exit the program"
-        )
-    )
-    time.sleep(1.5)
-    clearText()
-    # if the user press 1, display items that are for sale!
-    if user_actions == 1:
-        displayItems()
-    # if the user press 2, ask the user what they would want to update
-    elif user_actions == 2:
-        updateItem()
-    #  if the user press 3, ask the user what they would like to delete
-    elif user_actions == 3:
-        deleteItem()
-    # else if the user user had enough shopping, greet a warm message then exit the program
-    else:
-        print("Have a nice day!")
-        exit()
+    userOptions()
 
 
 # Update items from the shopping cart
 def updateItem():
-    pass
+    # ask the user what would they like to change
+    user_input = input("What would you like to change?")
+    # check if what they want to change is found
+    matched_item = checkIsFound(user_input, itemsForSale)
+
+    # if not found, display to the user it is not there.
+    if not matched_item:
+        print("The item is not found in our store.")
+        return
+
+    # get the items inside the cart
+    cart = userAttributes["shopping_cart"]
+    # if the matched item is not in the cart
+    if matched_item not in cart:
+        print(f"{matched_item} is not in your cart.")
+        return
+    # try catch phrase, catch the error if the user puts anything less than zero or a decimal
+    try:
+        # ask the user how many items of the updated item do they want
+        new_quantity = int(input(f"How many {matched_item} would you like now? "))
+        # the matched item insde the cart is now the new quantity
+        cart[matched_item] = new_quantity
+        # display the user that the process has been done.
+        print(f"{matched_item} quantity updated to {new_quantity}")
+    except ValueError:
+        print("Invalid number, keeping previous quantity")
+    time.sleep(1.5)
+    clearText()
+    displayCart()
+    # Ask the user what they would like to do
+    userOptions()
 
 
 # Delete items from the shopping cart
 def deleteItem():
-    pass
+    # ask the user what they would like to delete
+    user_input = input("What item would you like to delete?")
+    # check if what they want to delete is found
+    matched_item = checkIsFound(user_input, itemsForSale)
+    # get the user_attributes items
+    cart = userAttributes["shopping_cart"]
+    # if the matched item is not in cart then return an error
+    if matched_item not in cart:
+        print(f"{matched_item} is not in your cart.")
+    # delete the item from the cart
+    del cart[matched_item]
+    print(f"{matched_item} has been removed from your cart")
+    time.sleep(1.5)
+    clearText()
+    displayCart()
+    # Ask the user what they would like to do
+    userOptions()
+
+
+# Checkout items
+def checkoutCart():
+    # get the cart from the user attributes
+    cart = userAttributes["shopping_cart"]
+    # if there is nothing to checkout, then send them back to the main menu
+    if not cart:
+        print("You have nothing inside your cart.")
+        time.sleep(1.5)
+        clearText()
+        displayItems()
+        return
+    # if there are items, ask the user if they want to checkout
+    user_input = input("Would you like to checkout?").lower().strip()
+    if user_input == "yes":
+        print("\n=== Checkout ===")
+        # display the cart
+        displayCart()
+
+        # Print the date and time of purchase
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"\n Purchased completed at {now}")
+
+        # clear the cart after the checkout
+        userAttributes["shopping_cart"] = {}
+        userAttributes["cartIsEmpty"] = True
+
+        # Send a goodbye message and thank them for shopping at the store
+        print("\n Thank you for shopping at our sword store!")
+        time.sleep(1.5)
+        clearText()
+        exit()
+    else:
+        print("Have a great time shopping at our store!")
+        time.sleep(1.5)
+        clearText()
+        displayItems()
 
 
 # This function will check whether if the items they say is within the cart
@@ -176,6 +247,32 @@ def checkIsFound(user_input, store_item):
             return lowercase_storeItems[keyword]
     # else, return none
     return None
+
+
+# User options
+def userOptions():
+    user_actions = int(
+        input(
+            "Press 1 to continue shopping,\n press 2 to update items,\n press 3 to delete items. \n press 4 to checkout your items \n press 5 to exit"
+        )
+    )
+    time.sleep(1.5)
+    clearText()
+    # if the user press 1, display items that are for sale!
+    if user_actions == 1:
+        displayItems()
+    # if the user press 2, ask the user what they would want to update
+    elif user_actions == 2:
+        updateItem()
+    #  if the user press 3, ask the user what they would like to delete
+    elif user_actions == 3:
+        deleteItem()
+    # else if the user user had enough shopping, greet a warm message then exit the program
+    elif user_actions == 4:
+        checkoutCart()
+    else:
+        print("Have a nice day!")
+        exit()
 
 
 # This function will run the main function.
